@@ -16,7 +16,7 @@ class Board extends Component {
       onClick={()=>this.props.onClick(i)}
       />;
     }
-  
+
     render() {
 
       return (
@@ -65,14 +65,15 @@ class Game extends Component {
 
 
     handleClick(i){
+      // copy the old states instead of changing it directly
       const history = this.state.history.slice(0,this.state.stepNumber+1);
       const current = history[history.length - 1];
       const squares = current.squares.slice();
       const click_pos = {...current.click_pos};
       
-      //if there is already a winner or the square has been already filled 
+      //if there is already a winner or the square[i] has been already filled 
       //then directly return
-      if(calculateWinner(squares) || squares[i]){
+      if(calculateWinner(squares)[0] || squares[i]){
         return;
       }
 
@@ -94,6 +95,7 @@ class Game extends Component {
       const history = this.state.history;
       const current = history[this.state.stepNumber];
       const winner = calculateWinner(current.squares);
+      const even = calculateFinal(current.squares);
 
       const moves = history.map((step,move)=>{
         const desc = move ? 'Go to move #'+move : 'Go to game start';
@@ -101,8 +103,14 @@ class Game extends Component {
 
         return(
           <li key={move}>
-            <button onClick={()=>this.jumpToMove(move)} 
-              className="move" style={{fontWeight:'bold'}}
+            <button onClick={
+              (e)=>{
+                this.jumpToMove(move);
+                const el = document.getElementsByClassName("move");
+                el[move].style.fontWeight="bold";
+                }
+              } 
+              className="move" 
             >
             {desc+pos}
             </button>
@@ -112,8 +120,10 @@ class Game extends Component {
 
 
       let status;
-      if(winner){
-          status = 'Winner: '+winner;
+      if(winner[0]){
+          status = 'Winner: '+winner[0]+" Grid:"+winner[1]+","+winner[2]+","+winner[3];
+      }else if(even){
+          status = 'This is a Even Game';
       }else{
           status = 'Next player: '+(this.state.xIsNext? 'X':'O');
       };
@@ -153,8 +163,17 @@ function calculateWinner(squares) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] 
       && squares[a] === squares[c]) {
-      return squares[a];
+      return [squares[a],a,b,c];
     }
   }
-  return null;
+  return [null];
+}
+
+function calculateFinal(squares){
+  for(let i=0;i<9;++i){
+    if(!squares[i]){
+      return false;
+    }
+  }
+  return true;
 }
